@@ -12,6 +12,7 @@ public:
 	void setRotation(mat4 rotation);
 	void setTranslation(mat4 translation);
 	void update(vector<mat4> transformations);
-	HierarchicalEntity(Entity* entity, Entity* joint, vec3 origin, vector<HierarchicalEntity*> childs);
+	mat4 getOrigin();
+	HierarchicalEntity(Entity* entity, Entity* joint, mat4 origin, vector<HierarchicalEntity*> childs);
 	vector<HierarchicalEntity*> getChilds();
 };

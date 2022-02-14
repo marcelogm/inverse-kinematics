@@ -10,29 +10,32 @@ Scene::Scene(vector<Entity*> fixed, vector<HierarchicalEntity*> hierarchicalEnti
 	this->r = 0;
 }
 
+typedef struct {
+	float angle;
+	vec3 position;
+} Transfomation;
+
 void Scene::render() {
 	this->renderer->clear();
 	this->renderer->prepare();
 
 	KinematicConfiguration* kinematic = Configuration::getInstance()->getKinematic();
 
-	auto t1 = glm::translate(mat4(1.f), vec3(0.f, 1.0f, 0.f));
-	hierarchicalEntities.at(0)->setTranslation(t1);
+	vector<Transfomation> transformations = { 
+		{ 60.f, vec3(0.f, 1.0f, 0.f) }, 
+		{ 60.f, vec3(0.f, 2.0f, 0.f) },
+		{ 60.f, vec3(0.f, 2.0f, 0.f) }
+	};
 
-	auto r1 = glm::rotate(mat4(1.f), glm::radians((float)r), vec3(1.f, 0.f, 0.f));
-	hierarchicalEntities.at(0)->setRotation(r1);
-
-	auto t2 = glm::translate(mat4(1.f), vec3(0.f, 2.0f, 0.f));
-	hierarchicalEntities.at(0)->getChilds().at(0)->setTranslation(t2);
-
-	auto r2 = glm::rotate(mat4(1.f), glm::radians((float)r), vec3(0.f, 0.f, 1.f));
-	hierarchicalEntities.at(0)->getChilds().at(0)->setRotation(t1 * r2 * glm::inverse(t1));
-
-	auto t3 = glm::translate(mat4(1.f), vec3(0.f, 2.0f, 0.f));
-	hierarchicalEntities.at(0)->getChilds().at(0)->getChilds().at(0)->setTranslation(t3);
-
-	auto r3 = glm::rotate(mat4(1.f), glm::radians((float)r), vec3(1.f, 0.f, 0.f));
-	hierarchicalEntities.at(0)->getChilds().at(0)->getChilds().at(0)->setRotation(t1 * r3 * glm::inverse(t1));
+	HierarchicalEntity* root = hierarchicalEntities.at(0);
+	
+	for(Transfomation t : transformations) {
+		auto position = glm::translate(mat4(1.f), t.position);
+		auto rotation = glm::rotate(mat4(1.f), glm::radians((float) t.angle), vec3(1.f, 0.f, 0.f));
+		root->setTranslation(position);
+		root->setRotation(rotation);
+		root = next(root);
+	}
 
 	hierarchicalEntities.at(0)->update({});
 
@@ -44,6 +47,13 @@ void Scene::render() {
 	if (r > 360) {
 		r = 0;
 	}
+}
+
+HierarchicalEntity* Scene::next(HierarchicalEntity* root) {
+	if (root->getChilds().size() > 0) {
+		return root->getChilds().at(0);
+	}
+	return nullptr;
 }
 
 void Scene::updateAndRender(Entity* entity, Camera* camera) {

@@ -36,6 +36,7 @@ private:
 public:
 	Scene(vector<Entity*> fixed, vector<HierarchicalEntity*> hierarchicalEntities, Camera* camera);
 	void render();
+	HierarchicalEntity* next(HierarchicalEntity* root);
 	void updateAndRender(Entity* entity, Camera* camera);
 	Camera* getCamera();
 };
@@ -44,6 +45,8 @@ class InverseKinematicSceneFactory {
 private:
 	ObjectProvider provider;
 	vector<ShaderInfo> shaders;
+	Entity* getArm(vec4 color);
+	Entity* getJoint(vec4 color);
 public:
 	Scene* build();
 	InverseKinematicSceneFactory();

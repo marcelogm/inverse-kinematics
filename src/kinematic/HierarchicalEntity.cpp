@@ -1,7 +1,7 @@
 #include "kinematic.hpp"
 
 void HierarchicalEntity::setRotation(mat4 rotation) {
-	this->rotation = rotation;
+	this->rotation = this->getOrigin() * rotation * glm::inverse(this->getOrigin());
 }
 
 void HierarchicalEntity::setTranslation(mat4 translation) {
@@ -21,15 +21,20 @@ void HierarchicalEntity::update(vector<mat4> transformations) {
 	joint->update();
 	entity->setKinematicTransformation(model);
 	entity->update();
+
 	for (HierarchicalEntity* child : this->childs) {
 		child->update(transformations);
 	}
 }
 
-HierarchicalEntity::HierarchicalEntity(Entity* entity, Entity* joint, vec3 origin, vector<HierarchicalEntity*> childs) {
+mat4 HierarchicalEntity::getOrigin() {
+	return origin;
+}
+
+HierarchicalEntity::HierarchicalEntity(Entity* entity, Entity* joint, mat4 origin, vector<HierarchicalEntity*> childs) {
 	this->entity = entity;
 	this->joint = joint;
-	this->origin = glm::translate(mat4(1.f), origin);
+	this->origin = origin;
 	this->childs = childs;
 	this->rotation = mat4(1.f);
 	this->translation = mat4(1.f);

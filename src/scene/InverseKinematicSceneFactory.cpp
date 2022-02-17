@@ -19,6 +19,14 @@ Entity* InverseKinematicSceneFactory::getJoint(vec4 color) {
 }
 
 Scene* InverseKinematicSceneFactory::build() {
+	/*
+	Entity* floor = new Entity(
+		provider.get("resources/plane.obj"),
+		shaders,
+		vec4(1.0f, 1.0f, 1.0f, 1.0f),
+		glm::scale(mat4(1.f), vec3(10.0f, 10.0f, 10.0f))
+	);
+	*/
 	Entity* root = getArm(vec4(1.0f, 1.0f, 0.0f, 1.0f));
 	Entity* root_joint = getJoint(vec4(1.0f, 1.0f, 0.0f, 1.0f));
 
@@ -28,26 +36,32 @@ Scene* InverseKinematicSceneFactory::build() {
 	Entity* child_2 = getArm(vec4(1.0f, 0.0f, 1.0f, 1.0f));
 	Entity* joint_2 = getJoint(vec4(1.0f, 0.0f, 1.0f, 1.0f));
 
-	vector<Entity*> fixed = {
+	Entity* endEffector = getJoint(vec4(0.0f, 1.0f, 0.0f, 1.0f));
+	Entity* target = getJoint(vec4(1.0f, 0.0f, 0.0f, 1.0f));
+
+	vector<Entity*> entities = {
+		floor,
 		root,
 		root_joint,
 		child_1,
 		joint_1,
 		child_2,
-		joint_2
+		joint_2,
+		endEffector,
+		target
 	};
 
-	vector<HierarchicalEntity*> hierarchical = {
-		new HierarchicalEntity(root, joint_1, mat4(1.f), {
-			new HierarchicalEntity(child_1, joint_1, glm::translate(mat4(1.f), vec3(0.f, 1.0f, 0.f)), {
-				new HierarchicalEntity(child_2, joint_2, glm::translate(mat4(1.f), vec3(0.f, 1.0f, 0.f)), {
-				})
-			})
-		})
-	};
+	auto origin = glm::translate(mat4(1.f), vec3(0.f, 1.f, 0.f));
+	HierarchicalKinematic* hierarchical = new HierarchicalKinematic(
+		{ root, child_1, child_2 },
+		{ root_joint, joint_1, joint_2 },
+		endEffector,
+		{ origin, origin, origin }
+	);
 
 	return new Scene(
-		fixed,
+		entities,
+		target,
 		hierarchical,
 		new Camera(vec3(16.0f, 6.0f, -3.0f), vec3(-0.9f, -0.35f, 0.25f), -195, -20)
 	);

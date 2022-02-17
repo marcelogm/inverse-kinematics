@@ -9,6 +9,12 @@
 using glm::mat4;
 using std::vector;
 
+
+typedef struct {
+	vec3 rotation;
+	vec3 position;
+} Transfomation;
+
 class Renderer {
 private:
 	float aspect;
@@ -25,20 +31,18 @@ public:
 class Scene {
 private:
 	vector<Entity*> entities;
-	vector<HierarchicalEntity*> hierarchicalEntities;
-	Entity* character;
+	Entity* target;
+	vec3 targetPosition;
+	HierarchicalKinematic* hierarchical;
 	Renderer* renderer;
 	Camera* camera;
-	vector<vec3>* controls;
-	float currentStep;
-	float lastStep;
 	int r;
 public:
-	Scene(vector<Entity*> fixed, vector<HierarchicalEntity*> hierarchicalEntities, Camera* camera);
+	Scene(vector<Entity*> fixed, Entity* target, HierarchicalKinematic* hierarchical, Camera* camera);
 	void render();
-	HierarchicalEntity* next(HierarchicalEntity* root);
 	void updateAndRender(Entity* entity, Camera* camera);
 	Camera* getCamera();
+	vec3 nextPosition();
 };
 
 class InverseKinematicSceneFactory {

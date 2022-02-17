@@ -1,59 +1,39 @@
 #include "scene.hpp"
-#include "scene.hpp"
 #include <glm/gtx/norm.hpp>
+#include <glm/gtx/polar_coordinates.hpp>
 
-Scene::Scene(vector<Entity*> fixed, vector<HierarchicalEntity*> hierarchicalEntities, Camera* camera) {
+
+Scene::Scene(vector<Entity*> fixed, Entity* target, HierarchicalKinematic* hierarchical, Camera* camera) {
 	this->entities = fixed;
-	this->hierarchicalEntities = hierarchicalEntities;
+	this->target = target;
+	this->targetPosition = nextPosition();
+	this->hierarchical = hierarchical;
 	this->camera = camera;
 	this->renderer = new Renderer();
 	this->r = 0;
+	this->hierarchical->setTranslation(
+		glm::translate(mat4(1.f), vec3(0.f, 2.f, 0.f)),
+		glm::translate(mat4(1.f), vec3(0.f, 2.f, 0.f)),
+		glm::translate(mat4(1.f), vec3(0.f, 2.f, 0.f))
+	);
 }
-
-typedef struct {
-	float angle;
-	vec3 position;
-} Transfomation;
 
 void Scene::render() {
 	this->renderer->clear();
 	this->renderer->prepare();
+	target->setKinematicTransformation(glm::translate(mat4(1.f), targetPosition));
 
-	KinematicConfiguration* kinematic = Configuration::getInstance()->getKinematic();
+	auto distance = Jacobian().IK(hierarchical, targetPosition);
 
-	vector<Transfomation> transformations = { 
-		{ 60.f, vec3(0.f, 1.0f, 0.f) }, 
-		{ 60.f, vec3(0.f, 2.0f, 0.f) },
-		{ 60.f, vec3(0.f, 2.0f, 0.f) }
-	};
-
-	HierarchicalEntity* root = hierarchicalEntities.at(0);
-	
-	for(Transfomation t : transformations) {
-		auto position = glm::translate(mat4(1.f), t.position);
-		auto rotation = glm::rotate(mat4(1.f), glm::radians((float) t.angle), vec3(1.f, 0.f, 0.f));
-		root->setTranslation(position);
-		root->setRotation(rotation);
-		root = next(root);
-	}
-
-	hierarchicalEntities.at(0)->update({});
-
-	for (Entity* entity : this->entities) {
-		this->updateAndRender(entity, camera);
+	if (distance < 0.5 || r > 1000) {
+		targetPosition = nextPosition();
+		r = 0;
 	}
 
 	r++;
-	if (r > 360) {
-		r = 0;
+	for (Entity* entity : this->entities) {
+		this->updateAndRender(entity, camera);
 	}
-}
-
-HierarchicalEntity* Scene::next(HierarchicalEntity* root) {
-	if (root->getChilds().size() > 0) {
-		return root->getChilds().at(0);
-	}
-	return nullptr;
 }
 
 void Scene::updateAndRender(Entity* entity, Camera* camera) {
@@ -63,4 +43,17 @@ void Scene::updateAndRender(Entity* entity, Camera* camera) {
 
 Camera* Scene::getCamera() {
 	return camera;
+}
+
+float rand(float M, float N)
+{
+	return M + (rand() / (RAND_MAX / (N - M)));
+}
+
+vec3 Scene::nextPosition() {
+	auto radio = 4.0f;
+	auto azimuth = rand(0.f, 360.f);
+	auto polar = rand(0.f, 180.f);
+
+	return radio * glm::euclidean(glm::vec2(azimuth, polar));
 }

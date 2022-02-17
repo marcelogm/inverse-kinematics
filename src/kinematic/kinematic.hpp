@@ -1,18 +1,22 @@
+#pragma once
 #include "../entity/entity.hpp"
 
-class HierarchicalEntity {
+class HierarchicalKinematic {
 private:
-	vector<HierarchicalEntity*> childs;
-	mat4 translation;
-	mat4 rotation;
-	mat4 origin;
-	Entity* joint;
-	Entity* entity;
+	vector<Entity*> entities;
+	vector<Entity*> joints;
+	Entity* endEffector;
+	vector<mat4> origin;
+	vector<mat4> translation;
+	vector<mat4> rotation;
+	vector<mat4> model;
+	vector<vec3> jointRotation;
 public:
-	void setRotation(mat4 rotation);
-	void setTranslation(mat4 translation);
-	void update(vector<mat4> transformations);
-	mat4 getOrigin();
-	HierarchicalEntity(Entity* entity, Entity* joint, mat4 origin, vector<HierarchicalEntity*> childs);
-	vector<HierarchicalEntity*> getChilds();
+	void addToJointPosition(vec3 rotationA, vec3 rotationB, vec3 rotationC);
+	void setRotation(vec3 axis, int at);
+	void setTranslation(mat4 translaitonA, mat4 translationB, mat4 translationC);
+	void update();
+	vec3 getEndEffectorPosition();
+	vector<Entity*> getJoints();
+	HierarchicalKinematic(vector<Entity*> entities, vector<Entity*> joints, Entity* endEffector, vector<mat4> origins);
 };
